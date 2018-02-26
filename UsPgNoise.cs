@@ -3,7 +3,7 @@ using System.Collections;
 
 public class UsPgNoise
 {
-	const int B = 256;
+	const int B = 256; //256
 	int[] m_perm = new int[B+B];
 
 	public UsPgNoise(int seed)
@@ -34,7 +34,7 @@ public class UsPgNoise
 	float FADE(float t) { return t * t * t * ( t * ( t * 6.0f - 15.0f ) + 10.0f ); }
 	
 	float LERP(float t, float a, float b) { return (a) + (t)*((b)-(a)); }
-	
+
 	float GRAD1(int hash, float x ) 
 	{
 		//This method uses the mod operator which is slower 
@@ -67,7 +67,7 @@ public class UsPgNoise
     	return (((h&1) != 0)? -u : u) + (((h&2) != 0) ? -2.0f*v : 2.0f*v);
 	}
 	
-	
+/**		
 	float GRAD3(int hash, float x, float y , float z)
 	{
 		//This method uses the mod operator which is slower 
@@ -104,7 +104,7 @@ public class UsPgNoise
 	    n1 = GRAD1(m_perm[ix1], fx1);
 	    return 0.188f * LERP( s, n0, n1);
 	}
-	
+**/		
 	float Noise2D( float x, float y )
 	{
 		//returns a noise value between -0.75 and 0.75
@@ -137,7 +137,7 @@ public class UsPgNoise
 	
 	    return 0.507f * LERP( s, n0, n1 );
 	}
-	
+/**		
 	float Noise3D( float x, float y, float z )
 	{
 		//returns a noise value between -1.5 and 1.5
@@ -201,10 +201,10 @@ public class UsPgNoise
 		}
 		return sum;
 	}
-	
+**/	
 	public float FractalNoise2D(float x, float y, int octNum, float frq, float amp)
 	{
-		float gain = 1.0f;
+		float gain = 0.7f;
 		float sum = 0.0f;
 		
 		for(int i = 0; i < octNum; i++)
@@ -215,6 +215,21 @@ public class UsPgNoise
 		return sum;
 	}
 	
+	public float FractalNoise2Dver2(float x, float y, int octNum, float frq, float amp)
+	{
+		float gain = 0.1f;
+		float sum = 0.0f;
+		
+		for(int i = 0; i < octNum; i++)
+		{
+			sum += Noise2D(x*gain/frq, y*gain/frq) * amp/gain;
+			gain *= 2.0f;
+		}
+		return sum;
+	}
+	
+/**
+
 	public float FractalNoise3D(float x, float y, float z, int octNum, float frq, float amp)
 	{
 		float gain = 1.0f;
@@ -227,18 +242,7 @@ public class UsPgNoise
 		}
 		return sum;
 	}
+	
+**/
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
