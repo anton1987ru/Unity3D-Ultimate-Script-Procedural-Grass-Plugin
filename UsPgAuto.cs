@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Threading;
@@ -89,10 +90,17 @@ public class UsPgAuto : MonoBehaviour
 	 public int Height = 100000;
 	 public float RAYTRASSA = 150;
 	//////////////////////////////////////////////
+	///////////////ДЕРЕВЬЯ/////////
+	public GameObject FallingTreePrefab;
+    public GameObject player;
+	public List < TreeInstance > treeList;
+	////////
 	
 	void Start() 
 	{
-
+	///////////////ДЕРЕВЬЯ/////////
+	treeList = new List<TreeInstance>(Terrain.activeTerrain.terrainData.treeInstances);
+	////////
 		//***********   ИНИЦИАЛИЗИРУЕМ ТЕКСТУРЫ   ********//
 		m_detail0 = Resources.Load<Texture2D>("Ultimate scripts Procedural Grass/grass");//ТУТ УКАЗЫВАЕМ ИМЯ ТЕКСТУРЫ КОТОРАЯ ДОЛЖНА ЛЕЖАТЬ СТРОГО В ПАПКЕ Resources //
 		m_detail1 = Resources.Load<Texture2D>("Ultimate scripts Procedural Grass/grass1");//ТУТ УКАЗЫВАЕМ ИМЯ ТЕКСТУРЫ КОТОРАЯ ДОЛЖНА ЛЕЖАТЬ СТРОГО В ПАПКЕ Resources //
@@ -107,6 +115,7 @@ public class UsPgAuto : MonoBehaviour
 			
 /////////////////////////////////////////////////////////
 
+
 			CreateProtoTypes(); //создание прототипов травы
 
 		for(int x = 0; x < m_tilesX; x++)
@@ -118,6 +127,10 @@ public class UsPgAuto : MonoBehaviour
 				terrainData.detailPrototypes = m_detailProtoTypes;	//говорим что трава terrainData равна нашей траве из прототипов
                 m_terrain[x,z] = CurrentTerrain;//говорим что m_terrain[x,z] равен Нашему террейну в сцене
 				FillDetailMap(m_terrain[x,z], x, z); // говорим что FillDetailMap равен m_terrain[x,z] с параметрами x z
+				//////////////ДЕРЕВЬЯ/////////
+				treeList = new List< TreeInstance >();
+				Terrain.activeTerrain.terrainData.treeInstances = treeList.ToArray();
+				//////////////
 			}
 		}
 	
@@ -243,8 +256,7 @@ public class UsPgAuto : MonoBehaviour
 		
 		float ratio = (float)m_terrainSize/(float)m_detailMapSize;
 		
-		Random.seed = 481516234;
-		
+		UnityEngine.Random.seed = 481516234;
 ///////////////Генерация травы////////////////////////////////////////	
 		for(int x = 0; x < m_detailMapSize; x++) 
 		{
@@ -262,32 +274,36 @@ public class UsPgAuto : MonoBehaviour
 
 				
 						
-///////////////////Плейсить траву если угол меньше 90 градусов c учётом высоты водной поверхности и водной поверхности///////			
+///////////////////Плейсить траву если угол меньше 90 градусов c учётом высоты водной поверхности ///////
+			
 				if(frac < 0.6f && height > 1.1f * m_waterHeight) 
 				{
+					
 					float worldPosX = (x+tileX*(m_detailMapSize-1))*ratio;
 					float worldPosZ = (z+tileZ*(m_detailMapSize-1))*ratio;
 					
 					float noise = m_detailNoise.FractalNoise2D(worldPosX, worldPosZ, 3, m_detailFrq, 1.0f);
-					
+					float noise1 = m_detailNoise.FractalNoise2Dver2(worldPosX, worldPosZ, 3, m_detailFrq, 1.0f);
+					float result = Mathf.Lerp(noise1, noise, 0.9f);
 					
 					///////////////Распределение шума////////////////
-					if(noise > 0.0f) 
+					if(result > 0.0f) 
 					{
-						float rnd = Random.value;
-						if(rnd < 0.33f)
+						float rnd = UnityEngine.Random.value;
+						if(rnd < 0.23f)
 						detailMap0[z,x] = 3;
-						else if(rnd < 0.46f)
+						else if(rnd < 0.36f)
 						detailMap1[z,x] = 3;
-						else if(rnd < 0.56f)
+						else if(rnd < 0.46f)
 						detailMap2[z,x] = 3;				
-						else if(rnd < 0.66f)
+						else if(rnd < 0.56f)
 						detailMap3[z,x] = 3;					
-						else if(rnd < 0.76f)
+						else if(rnd < 0.66f)
 						detailMap4[z,x] = 3;
 						else
 						detailMap5[z,x] = 3;
 					}
+					
 					if( height > m_cliffHeight)
 					{
 						detailMap0[z,x] = 0;
@@ -324,13 +340,62 @@ public class UsPgAuto : MonoBehaviour
 		
 	}
 	
+	void OnApplicationQuit () {
+Terrain.activeTerrain.terrainData.RefreshPrototypes();
+Terrain.activeTerrain.Flush();
+}
 	
 /*	void OnApplicationQuit () {
 	Destroy (GetComponent<UsPgEraser>());
 }
 */
-
-	
+///////////ДЕРЕВЬЯ/////////
+void Update(){
+//float Pseudovoronoi = Mathf.Lerp(m_detailNoise.FractalNoise2D(Terrain.activeTerrain.transform.position.x, Terrain.activeTerrain.transform.position.z, 3, m_detailFrq, 1.0f),m_detailNoise.FractalNoise2Dver2(Terrain.activeTerrain.transform.position.x, Terrain.activeTerrain.transform.position.z, 3, m_detailFrq, 1.0f), 0.9f);
+player = GameObject.FindWithTag("Player");
+Vector3 treeposition = player.transform.position;
+Vector3 treeDisplacement = Vector3.zero;
+TreeInstance newtree = new TreeInstance();
+TreeInstance[] treeInstances = Terrain.activeTerrain.terrainData.treeInstances;
+	var RanddomF = Mathf.Floor(UnityEngine.Random.Range(0,3));
+	int RanddomI = Convert.ToInt32(RanddomF);
+	///////////
+	var RanddomF2 = Mathf.Floor(UnityEngine.Random.Range(-100, 100));
+	int RanddomI2 = Convert.ToInt32(RanddomF2);
+	var RanddomF3 = Mathf.Floor(UnityEngine.Random.Range(-100, 100));
+	int RanddomI3 = Convert.ToInt32(RanddomF3);
+	///////////
+    newtree.prototypeIndex = RanddomI; // From terrain tree prototypes list index
+    newtree.color = new Color (1, 1, 1);
+	newtree.lightmapColor = new Color (1, 1, 1); 
+    newtree.heightScale = 1;
+    newtree.widthScale = 1;
+	treeDisplacement = new Vector3(RanddomI3,0,RanddomI2); // World Space Coords Random around player transform
+    newtree.position = new Vector3(player.transform.position.x + treeDisplacement.x,player.transform.position.y + treeDisplacement.y,player.transform.position.z + treeDisplacement.z );
+	newtree.position.y = Terrain.activeTerrain.terrainData.GetInterpolatedHeight(newtree.position.x, newtree.position.z);  // Dont sure if I have to normalize coords
+	var newtreeterrainLocalPos = newtree.position - Terrain.activeTerrain.transform.position;
+    var newtreenormalizedPos = new Vector2(Mathf.InverseLerp(0.0f, Terrain.activeTerrain.terrainData.size.x, newtreeterrainLocalPos.x), Mathf.InverseLerp(0.0f, Terrain.activeTerrain.terrainData.size.z, newtreeterrainLocalPos.z));
+    var newtreeterrainNormal = Terrain.activeTerrain.terrainData.GetInterpolatedNormal(newtreenormalizedPos.x, newtreenormalizedPos.y);
+	var playerLocalPos = player.transform.position - Terrain.activeTerrain.transform.position;
+    var playernormalizedPos = new Vector2(Mathf.InverseLerp(0.0f, Terrain.activeTerrain.terrainData.size.x, playerLocalPos.x), Mathf.InverseLerp(0.0f, Terrain.activeTerrain.terrainData.size.z, newtreeterrainLocalPos.z));
+    var playerterrainNormal = Terrain.activeTerrain.terrainData.GetInterpolatedNormal(playernormalizedPos.x, playernormalizedPos.y);    
+ 	newtree.position = new Vector3(newtreenormalizedPos.x , 0 ,newtreenormalizedPos.y );
+	treeList.Add(newtree);
+//	treeList.Remove(newtree);
+    Terrain.activeTerrain.terrainData.treeInstances = treeList.ToArray();
+	var numTrees = treeList.Count;
+    var newtreeList = new List< TreeInstance >();
+	for ( var t = 0; t < numTrees; t ++ ){
+	var vecreal = Vector3.Scale(Terrain.activeTerrain.terrainData.treeInstances[t].position,Terrain.activeTerrain.terrainData.size) + Terrain.activeTerrain.transform.position;
+	var distance = Vector3.Distance (player.transform.position, vecreal);
+	  		if(distance<80)
+		{
+				newtreeList.Add(Terrain.activeTerrain.terrainData.treeInstances[t]);	
+		} 
+	}
+    Terrain.activeTerrain.terrainData.treeInstances = newtreeList.ToArray();
+    treeList = newtreeList;
 }
 
 
+}
